@@ -5,6 +5,9 @@ import {View, TextInput, Button, Text} from 'react-native';
 import {NavigationProp} from '@react-navigation/native';
 import Account from '../interfaces/account';
 import Loading from '../components/Loading';
+import * as Keychain from 'react-native-keychain';
+import {NativeModules} from 'react-native';
+const Aes = NativeModules.Aes;
 
 import {addDoc} from 'firebase/firestore';
 import {accountsRef} from '../auth/firebase';
@@ -31,21 +34,45 @@ const AddPasswordScreen: React.FC<Props> = ({navigation}) => {
   }, []);
 
   const handleWebsiteChange = (website: string) => {
-    setAccount(prevAccount => ({...prevAccount, website}));
+    setAccount(prevAccount =>
+      prevAccount
+        ? {...prevAccount, website}
+        : {website, email: '', password: '', useruid: ''},
+    );
   };
   const handleEmailChange = (email: string) => {
-    setAccount(prevAccount => ({...prevAccount, email}));
+    setAccount(prevAccount =>
+      prevAccount
+        ? {...prevAccount, email}
+        : {website: '', email, password: '', useruid: ''},
+    );
   };
   const handlePasswordChange = (password: string) => {
-    setAccount(prevAccount => ({...prevAccount, password}));
+    setAccount(prevAccount =>
+      prevAccount
+        ? {...prevAccount, password}
+        : {website: '', email: '', password, useruid: ''},
+    );
   };
 
   const handleAddAccount = async () => {
-    if (account) {
+    if (account?.email && account.password && account.website) {
+      // Récupérer la clé de chiffrement du Keychain
+      const credentials = await Keychain.getGenericPassword();
+      const secretKey = credentials ? credentials.password : '';
+
+      // Chiffrer les données
+      const iv = await Aes.randomKey(16);
+      const cipherText = await Aes.encrypt(
+        account.password,
+        secretKey,
+        iv,
+        'CBC',
+      );
+
       // good to go
       let website = account.website;
       let email = account.email;
-      let password = account.password;
       let userID = account.useruid;
 
       // navigation.navigate('Home');
@@ -53,7 +80,7 @@ const AddPasswordScreen: React.FC<Props> = ({navigation}) => {
       let doc = await addDoc(accountsRef, {
         website,
         email,
-        password,
+        password: cipherText,
         userID,
       });
       setLoading(false);

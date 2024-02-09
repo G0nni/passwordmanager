@@ -3,6 +3,11 @@ import {auth} from '../auth/firebase';
 import {signInWithEmailAndPassword} from 'firebase/auth';
 import {View, TextInput, Button, Text} from 'react-native';
 import {NavigationProp} from '@react-navigation/native';
+import * as Keychain from 'react-native-keychain';
+import {NativeModules} from 'react-native';
+const Aes = NativeModules.Aes;
+import 'react-native-get-random-values';
+import {v4 as uuidv4} from 'uuid';
 
 import User from '../interfaces/user';
 
@@ -11,9 +16,12 @@ type Props = {
 };
 
 // Connexion
-const loginUser = async (User: User) => {
+const loginUser = async (user: User) => {
   try {
-    await signInWithEmailAndPassword(auth, User.email, User.password);
+    await signInWithEmailAndPassword(auth, user.email, user.password);
+    const salt = uuidv4();
+    const key = await Aes.pbkdf2('password', 'salt', 5000, 256, 'SHA1'); // génère la clé de chiffrement
+    await Keychain.setGenericPassword(user.email, key); // Stocker le mot de passe chiffré
     console.log('Utilisateur connecté');
   } catch (error) {
     console.error(error);

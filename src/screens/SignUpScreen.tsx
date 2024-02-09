@@ -1,9 +1,13 @@
 import React from 'react';
-import authent from '../auth/firebase';
+import {auth} from '../auth/firebase';
 import {createUserWithEmailAndPassword} from 'firebase/auth';
 import {View, TextInput, Button, Text} from 'react-native';
 import {NavigationProp} from '@react-navigation/native';
-
+import * as Keychain from 'react-native-keychain';
+import {NativeModules} from 'react-native';
+const Aes = NativeModules.Aes;
+import 'react-native-get-random-values';
+import {v4 as uuidv4} from 'uuid';
 import User from '../interfaces/user';
 
 type Props = {
@@ -11,9 +15,12 @@ type Props = {
 };
 
 // inscription
-const registerUser = async (User: User) => {
+const registerUser = async (user: User) => {
   try {
-    await createUserWithEmailAndPassword(authent, User.email, User.password);
+    await createUserWithEmailAndPassword(auth, user.email, user.password);
+    const salt = uuidv4();
+    const key = await Aes.pbkdf2(user.password, salt); // génère la clé de chiffrement
+    await Keychain.setGenericPassword(user.email, key); // Stocker le mot de passe chiffré
     console.log('Utilisateur inscrit');
   } catch (error) {
     console.error(error);
