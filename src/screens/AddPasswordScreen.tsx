@@ -15,19 +15,20 @@ type Props = {
 
 const AddPasswordScreen: React.FC<Props> = ({navigation}) => {
   const [currentUserUID, setCurrentUID] = useState('');
+  const [account, setAccount] = React.useState<Account | null>(null);
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     if (auth.currentUser) {
       setCurrentUID(auth.currentUser.uid);
+      setAccount({
+        website: '',
+        email: '',
+        password: '',
+        useruid: auth.currentUser.uid,
+      });
     }
   }, []);
-
-  const [account, setAccount] = React.useState<Account>({
-    website: '',
-    email: '',
-    password: '',
-    useruid: currentUserUID,
-  });
-  const [loading, setLoading] = useState(false);
 
   const handleWebsiteChange = (website: string) => {
     setAccount(prevAccount => ({...prevAccount, website}));
@@ -42,11 +43,18 @@ const AddPasswordScreen: React.FC<Props> = ({navigation}) => {
   const handleAddAccount = async () => {
     if (account) {
       // good to go
+      let website = account.website;
+      let email = account.email;
+      let password = account.password;
+      let userID = account.useruid;
 
       // navigation.navigate('Home');
       setLoading(true);
       let doc = await addDoc(accountsRef, {
-        account,
+        website,
+        email,
+        password,
+        userID,
       });
       setLoading(false);
       if (doc && doc.id) {
@@ -63,26 +71,31 @@ const AddPasswordScreen: React.FC<Props> = ({navigation}) => {
 
   return (
     <View>
-      <TextInput
-        placeholder="Website"
-        onChangeText={handleWebsiteChange}
-        value={account.website}
-      />
-      <TextInput
-        placeholder="Email"
-        onChangeText={handleEmailChange}
-        value={account.email}
-      />
-      <TextInput
-        placeholder="Password"
-        onChangeText={handlePasswordChange}
-        value={account.password}
-        secureTextEntry
-      />
-      {loading ? (
-        <Loading />
-      ) : (
-        <Button title="Ajouter" onPress={handleAddAccount} />
+      <Text>voici le user connecté : {currentUserUID}</Text>
+      {account && (
+        <>
+          <TextInput
+            placeholder="Website"
+            onChangeText={handleWebsiteChange}
+            value={account.website}
+          />
+          <TextInput
+            placeholder="Email"
+            onChangeText={handleEmailChange}
+            value={account.email}
+          />
+          <TextInput
+            placeholder="Password"
+            onChangeText={handlePasswordChange}
+            value={account.password}
+            secureTextEntry
+          />
+          {loading ? (
+            <Loading />
+          ) : (
+            <Button title="Ajouter" onPress={handleAddAccount} />
+          )}
+        </>
       )}
     </View>
   );
