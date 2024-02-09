@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import authent from '../auth/firebase';
+import {auth} from '../auth/firebase';
 
 import {View, Text, Button} from 'react-native';
 import {NavigationProp} from '@react-navigation/native';
@@ -15,7 +15,7 @@ const ProfileScreen: React.FC<Props> = ({navigation}) => {
       <Button
         title="Se déconnecter"
         onPress={() => {
-          authent.signOut();
+          auth.signOut();
         }}
       />
     </View>
