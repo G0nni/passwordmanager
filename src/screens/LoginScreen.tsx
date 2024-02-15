@@ -17,11 +17,14 @@ type Props = {
 
 // Connexion
 const loginUser = async (user: User) => {
+  console.log('User:', user.email);
   try {
     await signInWithEmailAndPassword(auth, user.email, user.password);
     const salt = uuidv4();
-    const key = await Aes.pbkdf2('password', 'salt', 5000, 256, 'SHA1'); // génère la clé de chiffrement
-    await Keychain.setGenericPassword(user.email, key); // Stocker le mot de passe chiffré
+    const key = await Aes.pbkdf2(user.password, salt, 5000, 256, 'SHA1'); // génère la clé de chiffrement
+    await Keychain.setGenericPassword(user.email, key, {service: user.email}); // Stocker le mot de passe chiffré
+    const keyData = await Keychain.getGenericPassword({service: user.email});
+    console.log(keyData);
     console.log('Utilisateur connecté');
   } catch (error) {
     console.error(error);

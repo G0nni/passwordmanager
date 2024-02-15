@@ -7,7 +7,7 @@ import Account from '../interfaces/account';
 import Loading from '../components/Loading';
 import * as Keychain from 'react-native-keychain';
 import {NativeModules} from 'react-native';
-const Aes = NativeModules.Aes;
+import Aes from 'react-native-aes-crypto';
 
 import {addDoc} from 'firebase/firestore';
 import {accountsRef} from '../auth/firebase';
@@ -25,6 +25,7 @@ const AddPasswordScreen: React.FC<Props> = ({navigation}) => {
     if (auth.currentUser) {
       setCurrentUID(auth.currentUser.uid);
       setAccount({
+        id: 0,
         website: '',
         email: '',
         password: '',
@@ -37,55 +38,66 @@ const AddPasswordScreen: React.FC<Props> = ({navigation}) => {
     setAccount(prevAccount =>
       prevAccount
         ? {...prevAccount, website}
-        : {website, email: '', password: '', useruid: ''},
+        : {id: 0, website, email: '', password: '', useruid: ''},
     );
   };
   const handleEmailChange = (email: string) => {
     setAccount(prevAccount =>
       prevAccount
         ? {...prevAccount, email}
-        : {website: '', email, password: '', useruid: ''},
+        : {id: 0, website: '', email, password: '', useruid: ''},
     );
   };
   const handlePasswordChange = (password: string) => {
     setAccount(prevAccount =>
       prevAccount
         ? {...prevAccount, password}
-        : {website: '', email: '', password, useruid: ''},
+        : {id: 0, website: '', email: '', password, useruid: ''},
     );
+  };
+  const encryptData = (text: string, key: string) => {
+    return Aes.randomKey(16).then(iv => {
+      return Aes.encrypt(text, key, iv, 'aes-256-cbc').then(cipher => ({
+        cipher,
+        iv,
+      }));
+    });
   };
 
   const handleAddAccount = async () => {
     if (account?.email && account.password && account.website) {
       // Récupérer la clé de chiffrement du Keychain
-      const credentials = await Keychain.getGenericPassword();
+      const credentials = await Keychain.getGenericPassword({
+        service: account.email,
+      });
       const secretKey = credentials ? credentials.password : '';
 
-      // Chiffrer les données
-      const iv = await Aes.randomKey(16);
-      const cipherText = await Aes.encrypt(
-        account.password,
-        secretKey,
-        iv,
-        'CBC',
-      );
+      try {
+        // Chiffrer les données
+        const {cipher, iv} = await encryptData(account.password, secretKey);
 
-      // good to go
-      let website = account.website;
-      let email = account.email;
-      let userID = account.useruid;
+        // Combine the IV and cipher text
+        const combined = iv + ':' + cipher;
 
-      // navigation.navigate('Home');
-      setLoading(true);
-      let doc = await addDoc(accountsRef, {
-        website,
-        email,
-        password: cipherText,
-        userID,
-      });
-      setLoading(false);
-      if (doc && doc.id) {
-        navigation.goBack();
+        // good to go
+        let website = account.website;
+        let email = account.email;
+        let userID = account.useruid;
+
+        // navigation.navigate('Home');
+        setLoading(true);
+        let doc = await addDoc(accountsRef, {
+          website,
+          email,
+          password: combined,
+          userID,
+        });
+        setLoading(false);
+        if (doc && doc.id) {
+          navigation.goBack();
+        }
+      } catch (error) {
+        console.error(error);
       }
     } else {
       // show error

@@ -19,7 +19,7 @@ const registerUser = async (user: User) => {
   try {
     await createUserWithEmailAndPassword(auth, user.email, user.password);
     const salt = uuidv4();
-    const key = await Aes.pbkdf2(user.password, salt); // génère la clé de chiffrement
+    const key = await Aes.pbkdf2(user.password, salt, 5000, 256, 'SHA1'); // génère la clé de chiffrement
     await Keychain.setGenericPassword(user.email, key); // Stocker le mot de passe chiffré
     console.log('Utilisateur inscrit');
   } catch (error) {
