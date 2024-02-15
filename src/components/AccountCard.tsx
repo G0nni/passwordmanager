@@ -1,45 +1,39 @@
+import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, Modal, TouchableOpacity} from 'react-native';
 import * as Keychain from 'react-native-keychain';
-
-import Account from '../interfaces/account';
-import React, {useEffect} from 'react';
-import {decrypt} from 'react-native-aes-crypto';
-import {NativeModules} from 'react-native';
 import Aes from 'react-native-aes-crypto';
+
+import {auth} from '../auth/firebase';
+import Account from '../interfaces/account';
 
 type AccountCardProps = {
   account: Account;
 };
+
 const decryptData = (
   encryptedData: {cipher: string; iv: string},
   key: string,
 ) => Aes.decrypt(encryptedData.cipher, key, encryptedData.iv, 'aes-256-cbc');
 
 const AccountCard: React.FC<AccountCardProps> = ({account}) => {
-  const [modalVisible, setModalVisible] = React.useState(false);
-  const [decryptedPassword, setDecryptedPassword] = React.useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [decryptedPassword, setDecryptedPassword] = useState('');
+
+  const toggleModal = () => setModalVisible(prev => !prev);
 
   const decryptPassword = async () => {
-    // Retrieve the decryption key from the keychain
     const key = await Keychain.getGenericPassword({
-      service: account.email,
+      service: auth.currentUser?.uid,
     });
-    console.log('Key:', key);
-    if (key && key.password) {
-      // Extract the IV and cipher text from the combined data
-      const combined = account.password;
-      const [originalIv, cipherText] = combined.split(':');
 
-      console.log('Decryption key:', key.password);
-      console.log('Cipher text:', cipherText);
-      console.log('IV:', originalIv);
+    if (key && key.password) {
+      const [originalIv, cipherText] = account.password.split(':');
 
       try {
         const decrypted = await decryptData(
           {cipher: cipherText, iv: originalIv},
           key.password,
         );
-        console.log('Password decrypted');
         setDecryptedPassword(decrypted);
       } catch (error) {
         console.error('Failed to decrypt:', error);
@@ -55,7 +49,7 @@ const AccountCard: React.FC<AccountCardProps> = ({account}) => {
 
   return (
     <View style={styles.card}>
-      <TouchableOpacity onPress={() => setModalVisible(true)}>
+      <TouchableOpacity onPress={toggleModal}>
         <Text style={styles.cardText}>{account.website}</Text>
         <Text style={styles.cardText}>********</Text>
       </TouchableOpacity>
@@ -64,9 +58,7 @@ const AccountCard: React.FC<AccountCardProps> = ({account}) => {
         animationType="slide"
         transparent={true}
         visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible(!modalVisible);
-        }}>
+        onRequestClose={toggleModal}>
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <Text style={styles.modalText}>Email: {account.email}</Text>
@@ -74,9 +66,7 @@ const AccountCard: React.FC<AccountCardProps> = ({account}) => {
 
             <TouchableOpacity
               style={{...styles.openButton, backgroundColor: '#2196F3'}}
-              onPress={() => {
-                setModalVisible(!modalVisible);
-              }}>
+              onPress={toggleModal}>
               <Text style={styles.textStyle}>Hide Password</Text>
             </TouchableOpacity>
           </View>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {auth, saltRef} from '../auth/firebase';
 import {signInWithEmailAndPassword} from 'firebase/auth';
 import {View, TextInput, Button, Text} from 'react-native';
@@ -12,40 +12,55 @@ import {doc, getDoc} from 'firebase/firestore';
 import User from '../interfaces/user';
 
 type Props = {
-  navigation: NavigationProp<any>;
+  navigation: NavigationProp<any>; // Replace 'any' with the specific type
 };
 
-// Connexion
-const loginUser = async (user: User) => {
-  console.log('User:', user.email);
+const loginUser = async (
+  user: User,
+  setErrorMessage: (message: string) => void,
+) => {
   try {
-    const userCredential = await signInWithEmailAndPassword(
-      auth,
-      user.email,
-      user.password,
-    );
-    const uid = userCredential.user.uid;
-    // Récupérer le sel de l'utilisateur à partir de Firestore
-    let userSaltRef = doc(saltRef, uid);
-    const saltDoc = await getDoc(userSaltRef);
-    const saltData = saltDoc.data();
-    const salt = saltData?.salt; // Add null check for saltData
-    if (!salt) {
-      throw new Error('Salt data is undefined');
-    }
-
-    const key = await Aes.pbkdf2(user.password, salt, 5000, 256, 'SHA1'); // génère la clé de chiffrement
-    await Keychain.setGenericPassword(user.email, key, {service: user.email}); // Stocker le mot de passe chiffré
-    const keyData = await Keychain.getGenericPassword({service: user.email});
-    console.log(keyData);
+    const userCredential = await authenticateUser(user);
+    const salt = await fetchUserSalt(userCredential.user.uid);
+    const key = await generateEncryptionKey(user.password, salt);
+    await storeEncryptedPassword(user.email, key, userCredential.user.uid);
     console.log('Utilisateur connecté');
   } catch (error) {
     console.error(error);
+    if (error instanceof Error) {
+      setErrorMessage("L'authentification a échoué, vérifiez vos identifiants");
+    } else {
+      setErrorMessage('An unknown error occurred');
+    }
   }
 };
 
+const authenticateUser = (user: User) => {
+  return signInWithEmailAndPassword(auth, user.email, user.password);
+};
+
+const fetchUserSalt = async (uid: string) => {
+  let userSaltRef = doc(saltRef, uid);
+  const saltDoc = await getDoc(userSaltRef);
+  const saltData = saltDoc.data();
+  const salt = saltData?.salt;
+  if (!salt) {
+    throw new Error('Salt data is undefined');
+  }
+  return salt;
+};
+
+const generateEncryptionKey = (password: string, salt: string) => {
+  return Aes.pbkdf2(password, salt, 5000, 256, 'SHA1');
+};
+
+const storeEncryptedPassword = (email: string, key: string, uid: string) => {
+  return Keychain.setGenericPassword(email, key, {service: uid});
+};
+
 const LoginScreen: React.FC<Props> = ({navigation}) => {
-  const [user, setUser] = React.useState<User>({email: '', password: ''});
+  const [user, setUser] = useState<User>({email: '', password: ''});
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const handleEmailChange = (email: string) => {
     setUser(prevUser => ({...prevUser, email}));
@@ -68,8 +83,11 @@ const LoginScreen: React.FC<Props> = ({navigation}) => {
         value={user.password}
         secureTextEntry
       />
-      <Button title="Se connecter" onPress={() => loginUser(user)} />
-
+      <Button
+        title="Se connecter"
+        onPress={() => loginUser(user, setErrorMessage)}
+      />
+      {errorMessage && <Text>{errorMessage}</Text>}
       <Text>Vous n'avez pas de compte ?</Text>
       <Button
         title="S'inscrire"

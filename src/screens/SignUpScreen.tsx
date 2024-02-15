@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {auth, saltRef} from '../auth/firebase';
 import {createUserWithEmailAndPassword} from 'firebase/auth';
 import {View, TextInput, Button, Text} from 'react-native';
@@ -15,31 +15,52 @@ type Props = {
   navigation: NavigationProp<any>;
 };
 
-// inscription
-const registerUser = async (user: User) => {
-  try {
-    const userCredential = await createUserWithEmailAndPassword(
-      auth,
-      user.email,
-      user.password,
-    );
-    const uid = userCredential.user.uid;
+const createUser = async (user: User) => {
+  return await createUserWithEmailAndPassword(auth, user.email, user.password);
+};
 
+const storeUserSalt = async (uid: string, salt: string) => {
+  let userSaltRef = doc(saltRef, uid);
+  await setDoc(userSaltRef, {salt});
+};
+
+const generateEncryptionKey = async (password: string, salt: string) => {
+  return await Aes.pbkdf2(password, salt, 5000, 256, 'SHA1');
+};
+
+const storeEncryptedPassword = async (
+  email: string,
+  key: string,
+  uid: string,
+) => {
+  await Keychain.setGenericPassword(email, key, {service: uid});
+};
+
+const registerUser = async (
+  user: User,
+  setErrorMessage: (message: string) => void,
+) => {
+  try {
+    const userCredential = await createUser(user);
+    const uid = userCredential.user.uid;
     const salt = uuidv4();
-    let userSaltRef = doc(saltRef, uid); // Crée une référence à un document avec l'ID de l'utilisateur
-    await setDoc(userSaltRef, {
-      salt: salt,
-    });
-    const key = await Aes.pbkdf2(user.password, salt, 5000, 256, 'SHA1'); // génère la clé de chiffrement
-    await Keychain.setGenericPassword(user.email, key, {service: user.email}); // Stocker le mot de passe chiffré
+    await storeUserSalt(uid, salt);
+    const key = await generateEncryptionKey(user.password, salt);
+    await storeEncryptedPassword(user.email, key, uid);
     console.log('Utilisateur inscrit');
   } catch (error) {
-    console.error(error);
+    console.error("Erreur d'authentification : ", error);
+    if (error instanceof Error) {
+      setErrorMessage('Veuillez rentrer une adresse email valide');
+    } else {
+      setErrorMessage('An unknown error occurred');
+    }
   }
 };
 
 const SignUpScreen: React.FC<Props> = ({navigation}) => {
-  const [user, setUser] = React.useState<User>({email: '', password: ''});
+  const [user, setUser] = useState<User>({email: '', password: ''});
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const handleEmailChange = (email: string) => {
     setUser(prevUser => ({...prevUser, email}));
@@ -62,8 +83,11 @@ const SignUpScreen: React.FC<Props> = ({navigation}) => {
         value={user.password}
         secureTextEntry
       />
-      <Button title="S'inscrire" onPress={() => registerUser(user)} />
-
+      <Button
+        title="S'inscrire"
+        onPress={() => registerUser(user, setErrorMessage)}
+      />
+      {errorMessage && <Text>{errorMessage}</Text>}
       <Text>Vous avez déjà un compte ?</Text>
       <Button
         title="Se connecter"
