@@ -1,7 +1,7 @@
 export default interface Account {
-  id: number;
+  id: string;
   website: string;
   email: string;
   password: string;
-  useruid: string;
+  userID: string;
 }

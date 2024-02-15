@@ -31,11 +31,11 @@ const AddPasswordScreen: React.FC<Props> = ({navigation}) => {
 
   const createAccount = (uid: string) => {
     setAccount({
-      id: 0,
+      id: '',
       website: '',
       email: '',
       password: '',
-      useruid: uid,
+      userID: uid,
     });
   };
 
@@ -45,11 +45,11 @@ const AddPasswordScreen: React.FC<Props> = ({navigation}) => {
         return {...prevAccount, [field]: value};
       } else {
         return {
-          id: 0,
+          id: '', // Change this to a string
           website: field === 'website' ? value : '',
           email: field === 'email' ? value : '',
           password: field === 'password' ? value : '',
-          useruid: '',
+          userID: '',
         };
       }
     });
@@ -86,14 +86,14 @@ const AddPasswordScreen: React.FC<Props> = ({navigation}) => {
 
         let website = account.website;
         let email = account.email;
-        let userID = account.useruid;
+        let userID = account.userID;
 
-        let doc;
+        let docRef;
 
         setLoading(true);
         const netInfo = await NetInfo.fetch();
         if (netInfo.isConnected) {
-          doc = await addDoc(accountsRef, {
+          docRef = await addDoc(accountsRef, {
             website,
             email,
             password: combined,
@@ -101,18 +101,22 @@ const AddPasswordScreen: React.FC<Props> = ({navigation}) => {
           });
         }
 
-        const localData = storage.getString('accounts');
-        const accounts = localData ? JSON.parse(localData) : [];
-        accounts.push({
-          website,
-          email,
-          password: combined,
-          userID,
-        });
-        storage.set('accounts', JSON.stringify(accounts));
+        if (docRef && docRef.id) {
+          const localData = storage.getString('accounts');
+          const accounts = localData ? JSON.parse(localData) : [];
+          accounts.push({
+            docID: docRef.id, // Store the document ID
+            account: {
+              // Store the account data
+              website,
+              email,
+              password: combined,
+              userID,
+            },
+          });
+          storage.set('accounts', JSON.stringify(accounts));
 
-        setLoading(false);
-        if (doc && doc.id) {
+          setLoading(false);
           navigation.goBack();
         }
       } catch (error) {

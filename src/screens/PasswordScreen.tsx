@@ -18,8 +18,8 @@ const toAccount = (docData: any, id: string): Account => {
     website: docData.website || '',
     email: docData.email || '',
     password: docData.password || '',
-    useruid: docData.useruid || '',
-    id: Number(id),
+    userID: docData.useruid || '',
+    id: id, // Convert the id to a string
   };
 };
 
