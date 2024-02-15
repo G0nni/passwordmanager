@@ -22,5 +22,6 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 
 export const accountsRef = collection(db, 'accounts');
+export const saltRef = collection(db, 'salts');
 
 export default app;

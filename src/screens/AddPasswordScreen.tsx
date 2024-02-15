@@ -20,7 +20,7 @@ const AddPasswordScreen: React.FC<Props> = ({navigation}) => {
   const [currentUserUID, setCurrentUID] = useState('');
   const [account, setAccount] = React.useState<Account | null>(null);
   const [loading, setLoading] = useState(false);
-
+  const [decryptedPassword, setDecryptedPassword] = React.useState('');
   useEffect(() => {
     if (auth.currentUser) {
       setCurrentUID(auth.currentUser.uid);
@@ -63,6 +63,10 @@ const AddPasswordScreen: React.FC<Props> = ({navigation}) => {
       }));
     });
   };
+  const decryptData = (
+    encryptedData: {cipher: string; iv: string},
+    key: string,
+  ) => Aes.decrypt(encryptedData.cipher, key, encryptedData.iv, 'aes-256-cbc');
 
   const handleAddAccount = async () => {
     if (account?.email && account.password && account.website) {
@@ -92,10 +96,11 @@ const AddPasswordScreen: React.FC<Props> = ({navigation}) => {
           password: combined,
           userID,
         });
+
         setLoading(false);
-        if (doc && doc.id) {
-          navigation.goBack();
-        }
+        // if (doc && doc.id) {
+        //   navigation.goBack();
+        // }
       } catch (error) {
         console.error(error);
       }

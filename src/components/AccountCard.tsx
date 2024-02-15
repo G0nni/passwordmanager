@@ -21,11 +21,18 @@ const AccountCard: React.FC<AccountCardProps> = ({account}) => {
 
   const decryptPassword = async () => {
     // Retrieve the decryption key from the keychain
-    const key = await Keychain.getGenericPassword({service: account.email});
-    if (key) {
+    const key = await Keychain.getGenericPassword({
+      service: account.email,
+    });
+    console.log('Key:', key);
+    if (key && key.password) {
       // Extract the IV and cipher text from the combined data
       const combined = account.password;
       const [originalIv, cipherText] = combined.split(':');
+
+      console.log('Decryption key:', key.password);
+      console.log('Cipher text:', cipherText);
+      console.log('IV:', originalIv);
 
       try {
         const decrypted = await decryptData(
@@ -37,6 +44,8 @@ const AccountCard: React.FC<AccountCardProps> = ({account}) => {
       } catch (error) {
         console.error('Failed to decrypt:', error);
       }
+    } else {
+      console.error('Failed to retrieve key from keychain');
     }
   };
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import {auth} from '../auth/firebase';
+import {auth, saltRef} from '../auth/firebase';
 import {signInWithEmailAndPassword} from 'firebase/auth';
 import {View, TextInput, Button, Text} from 'react-native';
 import {NavigationProp} from '@react-navigation/native';
@@ -7,7 +7,7 @@ import * as Keychain from 'react-native-keychain';
 import {NativeModules} from 'react-native';
 const Aes = NativeModules.Aes;
 import 'react-native-get-random-values';
-import {v4 as uuidv4} from 'uuid';
+import {doc, getDoc} from 'firebase/firestore';
 
 import User from '../interfaces/user';
 
@@ -19,8 +19,21 @@ type Props = {
 const loginUser = async (user: User) => {
   console.log('User:', user.email);
   try {
-    await signInWithEmailAndPassword(auth, user.email, user.password);
-    const salt = uuidv4();
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      user.email,
+      user.password,
+    );
+    const uid = userCredential.user.uid;
+    // Récupérer le sel de l'utilisateur à partir de Firestore
+    let userSaltRef = doc(saltRef, uid);
+    const saltDoc = await getDoc(userSaltRef);
+    const saltData = saltDoc.data();
+    const salt = saltData?.salt; // Add null check for saltData
+    if (!salt) {
+      throw new Error('Salt data is undefined');
+    }
+
     const key = await Aes.pbkdf2(user.password, salt, 5000, 256, 'SHA1'); // génère la clé de chiffrement
     await Keychain.setGenericPassword(user.email, key, {service: user.email}); // Stocker le mot de passe chiffré
     const keyData = await Keychain.getGenericPassword({service: user.email});
