@@ -60,6 +60,7 @@ const AccountCard: React.FC<AccountCardProps> = ({account}) => {
         }}>
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
+            <Text style={styles.modalText}>Email: {account.email}</Text>
             <Text style={styles.modalText}>Password: {decryptedPassword}</Text>
 
             <TouchableOpacity
