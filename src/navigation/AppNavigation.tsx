@@ -34,10 +34,12 @@ export default function AppNavigation() {
 
   return (
     <NavigationContainer>
-      <Tab.Navigator initialRouteName="Home">
+      <Tab.Navigator
+        initialRouteName="Home"
+        screenOptions={{headerShown: false}}>
         {isConnected ? (
           <>
-            <Tab.Screen name="Password" component={PasswordStackScreen} />
+            <Tab.Screen name="PasswordStack" component={PasswordStackScreen} />
             <Tab.Screen name="Profile" component={ProfileScreen} />
           </>
         ) : (

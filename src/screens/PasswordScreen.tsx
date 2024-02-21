@@ -1,5 +1,13 @@
 import React, {useState, useEffect, useCallback} from 'react';
-import {View, Button, FlatList} from 'react-native';
+import {
+  View,
+  Button,
+  FlatList,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  Alert,
+} from 'react-native';
 import {useIsFocused, NavigationProp} from '@react-navigation/native';
 import {addDoc, getDocs, query, where} from 'firebase/firestore';
 import {auth, accountsRef} from '../auth/firebase';
@@ -7,6 +15,7 @@ import AccountCard from '../components/AccountCard';
 import Account from '../interfaces/account';
 import {MMKV} from 'react-native-mmkv';
 import NetInfo from '@react-native-community/netinfo';
+import {showMessage} from 'react-native-flash-message';
 
 type Props = {
   navigation: NavigationProp<any>;
@@ -96,6 +105,16 @@ const PasswordScreen: React.FC<Props> = ({navigation}) => {
     const unsubscribe = NetInfo.addEventListener(state => {
       if (state.isConnected) {
         syncDataCallback();
+        showMessage({
+          message: 'Vous êtes connecté à internet. Vos données sont à jour.',
+          type: 'success',
+        });
+      } else {
+        showMessage({
+          message:
+            'Vous êtes hors ligne. Vos données sont enregistrées localement.',
+          type: 'danger',
+        });
       }
     });
     return () => {
@@ -104,13 +123,7 @@ const PasswordScreen: React.FC<Props> = ({navigation}) => {
   }, [syncDataCallback]);
 
   return (
-    <View>
-      <Button
-        title="+"
-        onPress={() => {
-          navigation.navigate('AddPasswordScreen');
-        }}
-      />
+    <View style={styles.container}>
       <View style={{height: 430}}>
         <FlatList
           data={accounts}
@@ -120,11 +133,48 @@ const PasswordScreen: React.FC<Props> = ({navigation}) => {
           columnWrapperStyle={{
             justifyContent: 'space-between',
           }}
-          renderItem={({item}) => <AccountCard account={item} />}
+          renderItem={({item}) => (
+            <AccountCard
+              account={item}
+              refreshAccounts={fetchAccountsCallback}
+            />
+          )}
         />
       </View>
+      <TouchableOpacity
+        style={styles.floatingButton}
+        onPress={() => {
+          navigation.navigate('AddPasswordScreen');
+        }}>
+        <Text style={styles.buttonText}>+</Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  floatingButton: {
+    backgroundColor: '#5067FF',
+    borderColor: 'white',
+    borderWidth: 1,
+    height: 70,
+    width: 70,
+    borderRadius: 35,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+    elevation: 10,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 50,
+    marginTop: -5,
+    textAlign: 'center',
+  },
+});
 export default PasswordScreen;

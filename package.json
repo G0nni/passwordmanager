@@ -14,6 +14,7 @@
     "@react-native-firebase/app": "^18.8.0",
     "@react-native-firebase/auth": "^18.8.0",
     "@react-navigation/bottom-tabs": "^6.5.12",
+    "@react-navigation/material-bottom-tabs": "^6.2.20",
     "@react-navigation/native": "^6.1.10",
     "@react-navigation/stack": "^6.3.21",
     "@types/react-navigation": "^3.4.0",
@@ -23,6 +24,7 @@
     "react-native": "0.73.4",
     "react-native-aes-crypto": "^3.0.1",
     "react-native-crypto": "^2.2.0",
+    "react-native-flash-message": "^0.4.2",
     "react-native-gesture-handler": "^2.15.0",
     "react-native-get-random-values": "^1.10.0",
     "react-native-keychain": "^8.1.2",
@@ -32,6 +34,7 @@
     "react-native-screens": "^3.29.0",
     "react-native-snackbar": "^2.6.2",
     "react-native-stream": "^0.1.9",
+    "react-native-vector-icons": "^10.0.3",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
@@ -43,6 +46,7 @@
     "@react-native/metro-config": "0.73.5",
     "@react-native/typescript-config": "0.73.1",
     "@types/react": "^18.2.6",
+    "@types/react-native-vector-icons": "^6.4.18",
     "@types/react-test-renderer": "^18.0.0",
     "@types/uuid": "^9.0.8",
     "babel-jest": "^29.6.3",

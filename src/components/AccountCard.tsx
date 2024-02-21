@@ -16,6 +16,7 @@ import {MMKV} from 'react-native-mmkv';
 
 type AccountCardProps = {
   account: Account;
+  refreshAccounts: () => void;
 };
 
 const encryptAccountPassword = async (password: string, secretKey: string) => {
@@ -34,7 +35,10 @@ const decryptData = (
   key: string,
 ) => Aes.decrypt(encryptedData.cipher, key, encryptedData.iv, 'aes-256-cbc');
 
-const AccountCard: React.FC<AccountCardProps> = ({account}) => {
+const AccountCard: React.FC<AccountCardProps> = ({
+  account,
+  refreshAccounts,
+}) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [decryptedPassword, setDecryptedPassword] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -60,6 +64,9 @@ const AccountCard: React.FC<AccountCardProps> = ({account}) => {
 
     // Close the modal
     toggleModal();
+
+    // Refresh accounts
+    refreshAccounts();
   };
 
   const saveChanges = async () => {
@@ -104,6 +111,8 @@ const AccountCard: React.FC<AccountCardProps> = ({account}) => {
 
     // Exit editing mode
     setIsEditing(false);
+    // Refresh accounts
+    refreshAccounts();
   };
 
   const decryptPassword = async () => {
@@ -178,20 +187,33 @@ const AccountCard: React.FC<AccountCardProps> = ({account}) => {
                 </Text>
 
                 <TouchableOpacity
-                  style={{...styles.openButton, backgroundColor: '#2196F3'}}
+                  style={{
+                    ...styles.openButton,
+                    backgroundColor: '#FF5733',
+                    position: 'absolute',
+                    right: -20,
+                    top: -20,
+                    width: 40,
+                  }}
                   onPress={toggleModal}>
-                  <Text style={styles.textStyle}>Hide Password</Text>
+                  <Text style={styles.textStyle}>X</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={{...styles.openButton, backgroundColor: '#F194FF'}}
-                  onPress={() => setIsEditing(true)}>
-                  <Text style={styles.textStyle}>Edit Account</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={{...styles.openButton, backgroundColor: '#F194FF'}}
-                  onPress={deleteAccount}>
-                  <Text style={styles.textStyle}>Delete Account</Text>
-                </TouchableOpacity>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                  }}>
+                  <TouchableOpacity
+                    style={{...styles.openButton, backgroundColor: '#FF5733'}}
+                    onPress={deleteAccount}>
+                    <Text style={styles.textStyle}>Delete Account</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={{...styles.openButton, backgroundColor: '#5067ff'}}
+                    onPress={() => setIsEditing(true)}>
+                    <Text style={styles.textStyle}>Edit Account</Text>
+                  </TouchableOpacity>
+                </View>
               </>
             )}
           </View>
@@ -227,7 +249,7 @@ const styles = StyleSheet.create({
     margin: 20,
     backgroundColor: 'white',
     borderRadius: 20,
-    padding: 35,
+    padding: 20,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
@@ -240,9 +262,10 @@ const styles = StyleSheet.create({
   },
   openButton: {
     backgroundColor: '#F194FF',
-    borderRadius: 20,
+    borderRadius: 50,
     padding: 10,
     elevation: 2,
+    margin: 10,
   },
   textStyle: {
     color: 'white',

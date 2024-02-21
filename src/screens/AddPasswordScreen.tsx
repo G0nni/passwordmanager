@@ -1,7 +1,14 @@
 import React, {useState, useEffect} from 'react';
 import {auth} from '../auth/firebase';
 import Snackbar from 'react-native-snackbar';
-import {View, TextInput, Button, Text} from 'react-native';
+import {
+  View,
+  TextInput,
+  Button,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
 import {NavigationProp} from '@react-navigation/native';
 import Account from '../interfaces/account';
 import Loading from '../components/Loading';
@@ -131,21 +138,23 @@ const AddPasswordScreen: React.FC<Props> = ({navigation}) => {
   };
 
   return (
-    <View>
-      <Text>voici le user connecté : {currentUserUID}</Text>
+    <View style={styles.container}>
       {account && (
         <>
           <TextInput
+            style={styles.input}
             placeholder="Website"
             onChangeText={value => handleInputChange('website', value)}
             value={account.website}
           />
           <TextInput
+            style={styles.input}
             placeholder="Email"
             onChangeText={value => handleInputChange('email', value)}
             value={account.email}
           />
           <TextInput
+            style={styles.input}
             placeholder="Password"
             onChangeText={value => handleInputChange('password', value)}
             value={account.password}
@@ -154,12 +163,47 @@ const AddPasswordScreen: React.FC<Props> = ({navigation}) => {
           {loading ? (
             <Loading />
           ) : (
-            <Button title="Ajouter" onPress={handleAddAccount} />
+            <TouchableOpacity style={styles.button} onPress={handleAddAccount}>
+              <Text style={styles.buttonText}>Ajouter</Text>
+            </TouchableOpacity>
           )}
         </>
       )}
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#f5f5f5',
+    justifyContent: 'flex-start',
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  input: {
+    height: 50,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingLeft: 15,
+    marginBottom: 15,
+    backgroundColor: '#fff',
+  },
+  button: {
+    backgroundColor: '#5067FF',
+    padding: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+  },
+});
 
 export default AddPasswordScreen;

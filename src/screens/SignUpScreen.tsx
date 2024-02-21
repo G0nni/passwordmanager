@@ -1,7 +1,13 @@
 import React, {useState} from 'react';
 import {auth, saltRef} from '../auth/firebase';
 import {createUserWithEmailAndPassword} from 'firebase/auth';
-import {View, TextInput, Button, Text} from 'react-native';
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+} from 'react-native';
 import {NavigationProp} from '@react-navigation/native';
 import * as Keychain from 'react-native-keychain';
 import {NativeModules} from 'react-native';
@@ -71,32 +77,68 @@ const SignUpScreen: React.FC<Props> = ({navigation}) => {
   };
 
   return (
-    <View>
+    <View style={styles.container}>
       <TextInput
+        style={styles.input}
         placeholder="Email"
         onChangeText={handleEmailChange}
         value={user.email}
       />
       <TextInput
+        style={styles.input}
         placeholder="Password"
         onChangeText={handlePasswordChange}
         value={user.password}
         secureTextEntry
       />
-      <Button
-        title="S'inscrire"
-        onPress={() => registerUser(user, setErrorMessage)}
-      />
-      {errorMessage && <Text>{errorMessage}</Text>}
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => registerUser(user, setErrorMessage)}>
+        <Text style={styles.buttonText}>S'inscrire</Text>
+      </TouchableOpacity>
+      {errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
       <Text>Vous avez déjà un compte ?</Text>
-      <Button
-        title="Se connecter"
-        onPress={() => {
-          navigation.navigate('Login');
-        }}
-      />
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('Login')}>
+        <Text style={styles.buttonText}>Se connecter</Text>
+      </TouchableOpacity>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5FCFF',
+  },
+  input: {
+    width: '80%',
+    height: 40,
+    borderColor: '#333',
+    borderWidth: 1,
+    borderRadius: 10,
+    marginBottom: 10,
+    padding: 8,
+  },
+  button: {
+    backgroundColor: '#5067FF',
+    padding: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 20,
+    width: '80%',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+  },
+  error: {
+    color: 'red',
+    marginTop: 10,
+  },
+});
 
 export default SignUpScreen;
