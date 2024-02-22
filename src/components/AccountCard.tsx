@@ -157,18 +157,21 @@ const AccountCard: React.FC<AccountCardProps> = ({
           <View style={styles.modalView}>
             {isEditing ? (
               <>
-                <TextInput
-                  value={editableAccount.email}
-                  onChangeText={text =>
-                    setEditableAccount({...editableAccount, email: text})
-                  }
-                />
+                <Text style={styles.modalText}>Website:</Text>
                 <TextInput
                   value={editableAccount.website}
                   onChangeText={text =>
                     setEditableAccount({...editableAccount, website: text})
                   }
                 />
+                <Text style={styles.modalText}>Email:</Text>
+                <TextInput
+                  value={editableAccount.email}
+                  onChangeText={text =>
+                    setEditableAccount({...editableAccount, email: text})
+                  }
+                />
+                <Text style={styles.modalText}>Password:</Text>
                 <TextInput
                   value={decryptedPassword}
                   onChangeText={text => setDecryptedPassword(text)}
@@ -181,6 +184,7 @@ const AccountCard: React.FC<AccountCardProps> = ({
               </>
             ) : (
               <>
+                <Text style={styles.modalText}>{editableAccount.website}</Text>
                 <Text style={styles.modalText}>Email: {account.email}</Text>
                 <Text style={styles.modalText}>
                   Password: {decryptedPassword}
@@ -266,6 +270,7 @@ const styles = StyleSheet.create({
     padding: 10,
     elevation: 2,
     margin: 10,
+    marginTop: 20,
   },
   textStyle: {
     color: 'white',
@@ -273,7 +278,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   modalText: {
-    marginBottom: 15,
+    marginTop: 15,
+    marginBottom: 5,
     textAlign: 'center',
   },
 });

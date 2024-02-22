@@ -97,12 +97,9 @@ const LoginScreen: React.FC<Props> = ({navigation}) => {
         <Text style={styles.buttonText}>Se connecter</Text>
       </TouchableOpacity>
       {errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
-      <Text>Vous n'avez pas de compte ?</Text>
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate('SignUp')}>
-        <Text style={styles.buttonText}>S'inscrire</Text>
-      </TouchableOpacity>
+      <Text style={styles.signup} onPress={() => navigation.navigate('SignUp')}>
+        Vous n'avez pas de compte ?
+      </Text>
     </View>
   );
 };
@@ -130,6 +127,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,
     width: '80%',
+  },
+  signup: {
+    marginTop: 25,
   },
   buttonText: {
     color: '#fff',

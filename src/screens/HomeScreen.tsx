@@ -16,6 +16,11 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
         onPress={() => navigation.navigate('Login')}>
         <Text style={styles.buttonText}>Se connecter</Text>
       </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('SignUp')}>
+        <Text style={styles.buttonText}>S'inscrire</Text>
+      </TouchableOpacity>
     </View>
   );
 };

@@ -57,7 +57,7 @@ const registerUser = async (
   } catch (error) {
     console.error("Erreur d'authentification : ", error);
     if (error instanceof Error) {
-      setErrorMessage('Veuillez rentrer une adresse email valide');
+      setErrorMessage('Veuillez rentrer une adresse mail valide');
     } else {
       setErrorMessage('An unknown error occurred');
     }
@@ -97,12 +97,9 @@ const SignUpScreen: React.FC<Props> = ({navigation}) => {
         <Text style={styles.buttonText}>S'inscrire</Text>
       </TouchableOpacity>
       {errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
-      <Text>Vous avez déjà un compte ?</Text>
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate('Login')}>
-        <Text style={styles.buttonText}>Se connecter</Text>
-      </TouchableOpacity>
+      <Text style={styles.login} onPress={() => navigation.navigate('Login')}>
+        Vous avez déjà un compte ?
+      </Text>
     </View>
   );
 };
@@ -130,6 +127,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,
     width: '80%',
+  },
+  login: {
+    marginTop: 25,
   },
   buttonText: {
     color: '#fff',
